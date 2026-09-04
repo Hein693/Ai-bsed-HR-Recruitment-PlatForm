@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Response, status
@@ -10,16 +11,7 @@ from sqlalchemy.orm import Session
 from app.auth import COOKIE_NAME, create_access_token, get_current_user, require_roles, seed_admin, verify_password
 from app.database import Base, SessionLocal, engine, get_db
 from app.models import Candidate, Job, Screening, TrainingExample, User
-from app.schemas import (
-    AssistantRequest,
-    CandidateCreate,
-    CandidateOut,
-    JobCreate,
-    JobOut,
-    ScreeningCreate,
-    ScreeningOut,
-    TrainingExampleCreate,
-)
+from app.schemas import AssistantRequest, CandidateCreate, CandidateOut, JobCreate, JobOut, ScreeningCreate, ScreeningOut, TrainingExampleCreate
 from app.services.matching import model_status, score_candidate, train_qualification_model
 from app.services.prompts import CORE_SYSTEM_PROMPT, PROMPTS, build_prompt
 
@@ -27,11 +19,7 @@ Base.metadata.create_all(bind=engine)
 with SessionLocal() as startup_db:
     seed_admin(startup_db)
 
-app = FastAPI(
-    title="Nexus Recruitment AI",
-    version="1.1.0",
-    description="Human-reviewed recruitment decision support for Nexus.",
-)
+app = FastAPI(title="Nexus Recruitment AI", version="1.1.0", description="Human-reviewed recruitment decision support for Nexus.")
 static_path = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 
@@ -56,17 +44,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
     if not user or not user.is_active or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
-
-    token = create_access_token(user)
-    response.set_cookie(
-        key=COOKIE_NAME,
-        value=token,
-        httponly=True,
-        secure=os.getenv("COOKIE_SECURE", "false").lower() == "true",
-        samesite="lax",
-        max_age=60 * 60 * 8,
-        path="/",
-    )
+    response.set_cookie(key=COOKIE_NAME, value=create_access_token(user), httponly=True, secure=os.getenv("COOKIE_SECURE", "false").lower() == "true", samesite="lax", max_age=60 * 60 * 8, path="/")
     return {"message": "Login successful.", "user": {"id": user.id, "email": user.email, "role": user.role}}
 
 
@@ -84,9 +62,7 @@ def me(current_user: User = Depends(get_current_user)):
 @app.post("/jobs", response_model=JobOut, status_code=201)
 def create_job(payload: JobCreate, db: Session = Depends(get_db), current_user: User = Depends(require_roles("admin", "recruiter"))):
     job = Job(**payload.model_dump())
-    db.add(job)
-    db.commit()
-    db.refresh(job)
+    db.add(job); db.commit(); db.refresh(job)
     return job
 
 
@@ -98,9 +74,7 @@ def list_jobs(db: Session = Depends(get_db), current_user: User = Depends(get_cu
 @app.post("/candidates", response_model=CandidateOut, status_code=201)
 def create_candidate(payload: CandidateCreate, db: Session = Depends(get_db), current_user: User = Depends(require_roles("admin", "recruiter"))):
     candidate = Candidate(**payload.model_dump())
-    db.add(candidate)
-    db.commit()
-    db.refresh(candidate)
+    db.add(candidate); db.commit(); db.refresh(candidate)
     return candidate
 
 
@@ -111,24 +85,12 @@ def list_candidates(db: Session = Depends(get_db), current_user: User = Depends(
 
 @app.post("/screenings", response_model=ScreeningOut, status_code=201)
 def screen_candidate(payload: ScreeningCreate, db: Session = Depends(get_db), current_user: User = Depends(require_roles("admin", "recruiter"))):
-    job = db.get(Job, payload.job_id)
-    candidate = db.get(Candidate, payload.candidate_id)
+    job = db.get(Job, payload.job_id); candidate = db.get(Candidate, payload.candidate_id)
     if not job or not candidate:
         raise HTTPException(status_code=404, detail="Job or candidate not found.")
     result = score_candidate(job, candidate)
-    screening = Screening(
-        job_id=job.id,
-        candidate_id=candidate.id,
-        score=result.score,
-        recommendation=result.recommendation,
-        model_name=result.model_name,
-        evidence=result.evidence,
-        gaps=result.gaps,
-        suggested_questions=result.suggested_questions,
-    )
-    db.add(screening)
-    db.commit()
-    db.refresh(screening)
+    screening = Screening(job_id=job.id, candidate_id=candidate.id, score=result.score, recommendation=result.recommendation, model_name=result.model_name, evidence=result.evidence, gaps=result.gaps, suggested_questions=result.suggested_questions)
+    db.add(screening); db.commit(); db.refresh(screening)
     return screening
 
 
@@ -140,8 +102,7 @@ def list_screenings(db: Session = Depends(get_db), current_user: User = Depends(
 @app.post("/ml/training-examples", status_code=201)
 def add_training_example(payload: TrainingExampleCreate, db: Session = Depends(get_db), current_user: User = Depends(require_roles("admin", "recruiter"))):
     example = TrainingExample(**payload.model_dump())
-    db.add(example)
-    db.commit()
+    db.add(example); db.commit()
     return {"id": example.id, "message": "Human-reviewed training example saved."}
 
 
