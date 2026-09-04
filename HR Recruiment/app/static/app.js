@@ -1,14 +1,12 @@
 const api = {
-  get: (path) => fetch(path).then(async r => { if (!r.ok) throw new Error((await r.json()).detail || 'Request failed'); return r.json(); }),
-  post: (path, body) => fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).then(async r => { if (!r.ok) throw new Error((await r.json()).detail || 'Request failed'); return r.json(); })
+  get: (path) => fetch(path, { credentials: 'same-origin' }).then(async r => { if (!r.ok) throw new Error((await r.json()).detail || 'Request failed'); return r.json(); }),
+  post: (path, body) => fetch(path, { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }).then(async r => { if (!r.ok) throw new Error((await r.json()).detail || 'Request failed'); return r.json(); })
 };
 
 let jobs = [];
 let candidates = [];
-
 const skills = value => value.split(',').map(item => item.trim()).filter(Boolean);
 const escapeHtml = value => String(value || '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
-
 function showMessage(message) { window.alert(message); }
 
 function renderJobs() {
@@ -36,19 +34,36 @@ async function refresh() {
     document.querySelector('#screening-count').textContent = screenings.length;
     document.querySelector('#ml-status').textContent = status.trained ? 'ML model' : 'Baseline';
     renderJobs(); renderCandidates();
-  } catch (error) { showMessage(error.message); }
+  } catch (error) {
+    if (error.message === 'Authentication required.' || error.message.includes('session')) showLogin();
+    else showMessage(error.message);
+  }
 }
 
+function showApp() { document.querySelector('#login-view').hidden = true; document.querySelector('#app-view').hidden = false; refresh(); }
+function showLogin() { document.querySelector('#login-view').hidden = false; document.querySelector('#app-view').hidden = true; }
+
+document.querySelector('#login-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const payload = Object.fromEntries(new FormData(event.currentTarget).entries());
+  try {
+    await api.post('/auth/login', payload);
+    event.currentTarget.reset();
+    document.querySelector('#login-error').textContent = '';
+    showApp();
+  } catch (error) { document.querySelector('#login-error').textContent = error.message; }
+});
+
+document.querySelector('#logout-button').addEventListener('click', async () => { await api.post('/auth/logout', {}); showLogin(); });
+
 document.querySelector('#job-form').addEventListener('submit', async event => {
-  event.preventDefault(); const form = new FormData(event.currentTarget);
-  const payload = Object.fromEntries(form.entries());
+  event.preventDefault(); const form = new FormData(event.currentTarget); const payload = Object.fromEntries(form.entries());
   payload.required_skills = skills(payload.required_skills); payload.preferred_skills = skills(payload.preferred_skills);
   try { await api.post('/jobs', payload); event.currentTarget.reset(); await refresh(); } catch (error) { showMessage(error.message); }
 });
 
 document.querySelector('#candidate-form').addEventListener('submit', async event => {
-  event.preventDefault(); const form = new FormData(event.currentTarget);
-  const payload = Object.fromEntries(form.entries()); payload.skills = skills(payload.skills);
+  event.preventDefault(); const form = new FormData(event.currentTarget); const payload = Object.fromEntries(form.entries()); payload.skills = skills(payload.skills);
   if (!payload.email) delete payload.email; if (!payload.source) delete payload.source;
   try { await api.post('/candidates', payload); event.currentTarget.reset(); await refresh(); } catch (error) { showMessage(error.message); }
 });
@@ -59,4 +74,4 @@ document.querySelector('#screening-form').addEventListener('submit', async event
   try { renderScreening(await api.post('/screenings', Object.fromEntries(form.entries()))); await refresh(); } catch (error) { showMessage(error.message); }
 });
 
-refresh();
+fetch('/auth/me', { credentials: 'same-origin' }).then(r => r.ok ? showApp() : showLogin()).catch(() => showLogin());
