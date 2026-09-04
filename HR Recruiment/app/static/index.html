@@ -7,71 +7,37 @@
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
-    <header>
-      <div class="brand"><span class="mark">N</span><span>Nexus</span><small>Recruitment AI</small></div>
-      <div class="status"><span></span> Human-reviewed decision support</div>
-    </header>
-    <main>
-      <section class="hero">
-        <p class="eyebrow">RECRUITMENT OPERATIONS</p>
-        <h1>Find the evidence.<br /><em>Keep people in charge.</em></h1>
-        <p>Role-specific matching, structured screening, and responsible machine-learning support for Nexus.</p>
+    <div id="login-view" class="auth-view">
+      <section class="panel auth-panel">
+        <div class="brand"><span class="mark">N</span><span>Nexus</span><small>Recruitment AI</small></div>
+        <h1>Recruiter sign in</h1>
+        <p class="muted">Sign in to access recruitment records and screening tools.</p>
+        <form id="login-form">
+          <label>Email<input type="email" name="email" required autocomplete="username" /></label>
+          <label>Password<input type="password" name="password" required autocomplete="current-password" /></label>
+          <button type="submit">Sign in</button>
+        </form>
+        <p id="login-error" class="error"></p>
       </section>
+    </div>
 
-      <section class="metrics" id="metrics">
-        <article><b id="job-count">0</b><span>Open roles</span></article>
-        <article><b id="candidate-count">0</b><span>Candidates</span></article>
-        <article><b id="screening-count">0</b><span>Reviews run</span></article>
-        <article><b id="ml-status">Baseline</b><span>Matching method</span></article>
-      </section>
-
-      <section class="workspace">
-        <div class="panel form-panel">
-          <div class="panel-heading"><p class="eyebrow">01 / ROLE</p><h2>Create a job</h2></div>
-          <form id="job-form">
-            <label>Job title<input name="title" required placeholder="Backend Engineer" /></label>
-            <div class="two-col">
-              <label>Department<input name="department" value="Engineering" /></label>
-              <label>Level<select name="level"><option>Junior</option><option selected>Mid</option><option>Senior</option><option>Lead</option></select></label>
-            </div>
-            <label>Work arrangement<select name="work_arrangement"><option>Remote</option><option selected>Hybrid</option><option>On-site</option></select></label>
-            <label>Role description<textarea name="description" required placeholder="Describe responsibilities, scope, and outcomes."></textarea></label>
-            <label>Required skills <small>comma separated</small><input name="required_skills" placeholder="Python, FastAPI, SQL" /></label>
-            <label>Preferred skills <small>comma separated</small><input name="preferred_skills" placeholder="AWS, Docker" /></label>
-            <button type="submit">Save role</button>
-          </form>
-        </div>
-
-        <div class="panel form-panel">
-          <div class="panel-heading"><p class="eyebrow">02 / CANDIDATE</p><h2>Add a candidate</h2></div>
-          <form id="candidate-form">
-            <label>Full name<input name="full_name" required placeholder="Avery Chen" /></label>
-            <div class="two-col"><label>Email<input type="email" name="email" placeholder="avery@example.com" /></label><label>Source<input name="source" placeholder="Referral" /></label></div>
-            <label>Skills <small>comma separated</small><input name="skills" placeholder="Python, PostgreSQL, React" /></label>
-            <label>Resume or profile<textarea name="resume_text" required placeholder="Paste the role-relevant experience here."></textarea></label>
-            <button type="submit">Save candidate</button>
-          </form>
-        </div>
-
-        <div class="panel screening-panel">
-          <div class="panel-heading"><p class="eyebrow">03 / REVIEW</p><h2>Run a structured screen</h2></div>
-          <p class="muted">Scores are recommendations based on job-related evidence. A recruiter makes every decision.</p>
-          <form id="screening-form">
-            <label>Role<select id="screening-job" name="job_id" required></select></label>
-            <label>Candidate<select id="screening-candidate" name="candidate_id" required></select></label>
-            <button type="submit">Review match</button>
-          </form>
-          <div id="screening-result" class="result empty">Select a role and candidate to begin.</div>
-        </div>
-      </section>
-
-      <section class="lists">
-        <div class="panel list-panel"><div class="panel-heading"><p class="eyebrow">RECORDS</p><h2>Roles</h2></div><div id="jobs" class="record-list"></div></div>
-        <div class="panel list-panel"><div class="panel-heading"><p class="eyebrow">RECORDS</p><h2>Candidates</h2></div><div id="candidates" class="record-list"></div></div>
-        <div class="panel list-panel"><div class="panel-heading"><p class="eyebrow">NEXUS PROMPTS</p><h2>AI workflows</h2></div><p class="muted">The system prompt and five workflow prompts are available through the API.</p><a class="text-link" href="/docs" target="_blank">Open API documentation →</a></div>
-      </section>
-    </main>
-    <footer>© Nexus · AI assists recruiters; it does not decide who is hired.</footer>
+    <div id="app-view" hidden>
+      <header>
+        <div class="brand"><span class="mark">N</span><span>Nexus</span><small>Recruitment AI</small></div>
+        <div class="status"><span></span> Human-reviewed decision support <button id="logout-button" class="secondary">Log out</button></div>
+      </header>
+      <main>
+        <section class="hero"><p class="eyebrow">RECRUITMENT OPERATIONS</p><h1>Find the evidence.<br /><em>Keep people in charge.</em></h1><p>Role-specific matching, structured screening, and responsible machine-learning support for Nexus.</p></section>
+        <section class="metrics" id="metrics"><article><b id="job-count">0</b><span>Open roles</span></article><article><b id="candidate-count">0</b><span>Candidates</span></article><article><b id="screening-count">0</b><span>Reviews run</span></article><article><b id="ml-status">Baseline</b><span>Matching method</span></article></section>
+        <section class="workspace">
+          <div class="panel form-panel"><div class="panel-heading"><p class="eyebrow">01 / ROLE</p><h2>Create a job</h2></div><form id="job-form"><label>Job title<input name="title" required placeholder="Backend Engineer" /></label><div class="two-col"><label>Department<input name="department" value="Engineering" /></label><label>Level<select name="level"><option>Junior</option><option selected>Mid</option><option>Senior</option><option>Lead</option></select></label></div><label>Work arrangement<select name="work_arrangement"><option>Remote</option><option selected>Hybrid</option><option>On-site</option></select></label><label>Role description<textarea name="description" required placeholder="Describe responsibilities, scope, and outcomes."></textarea></label><label>Required skills <small>comma separated</small><input name="required_skills" placeholder="Python, FastAPI, SQL" /></label><label>Preferred skills <small>comma separated</small><input name="preferred_skills" placeholder="AWS, Docker" /></label><button type="submit">Save role</button></form></div>
+          <div class="panel form-panel"><div class="panel-heading"><p class="eyebrow">02 / CANDIDATE</p><h2>Add a candidate</h2></div><form id="candidate-form"><label>Full name<input name="full_name" required placeholder="Avery Chen" /></label><div class="two-col"><label>Email<input type="email" name="email" placeholder="avery@example.com" /></label><label>Source<input name="source" placeholder="Referral" /></label></div><label>Skills <small>comma separated</small><input name="skills" placeholder="Python, PostgreSQL, React" /></label><label>Resume or profile<textarea name="resume_text" required placeholder="Paste the role-relevant experience here."></textarea></label><button type="submit">Save candidate</button></form></div>
+          <div class="panel screening-panel"><div class="panel-heading"><p class="eyebrow">03 / REVIEW</p><h2>Run a structured screen</h2></div><p class="muted">Scores are recommendations based on job-related evidence. A recruiter makes every decision.</p><form id="screening-form"><label>Role<select id="screening-job" name="job_id" required></select></label><label>Candidate<select id="screening-candidate" name="candidate_id" required></select></label><button type="submit">Review match</button></form><div id="screening-result" class="result empty">Select a role and candidate to begin.</div></div>
+        </section>
+        <section class="lists"><div class="panel list-panel"><div class="panel-heading"><p class="eyebrow">RECORDS</p><h2>Roles</h2></div><div id="jobs" class="record-list"></div></div><div class="panel list-panel"><div class="panel-heading"><p class="eyebrow">RECORDS</p><h2>Candidates</h2></div><div id="candidates" class="record-list"></div></div><div class="panel list-panel"><div class="panel-heading"><p class="eyebrow">NEXUS PROMPTS</p><h2>AI workflows</h2></div><p class="muted">The system prompt and workflow prompts are available through the API.</p><a class="text-link" href="/docs" target="_blank">Open API documentation →</a></div></section>
+      </main>
+      <footer>© Nexus · AI assists recruiters; it does not decide who is hired.</footer>
+    </div>
     <script src="/static/app.js"></script>
   </body>
 </html>
