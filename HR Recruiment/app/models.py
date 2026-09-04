@@ -11,6 +11,17 @@ def new_id() -> str:
     return str(uuid.uuid4())
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(512))
+    role: Mapped[str] = mapped_column(String(30), default="recruiter")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class Job(Base):
     __tablename__ = "jobs"
 
